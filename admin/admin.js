@@ -1,0 +1,8 @@
+/* Demo-only local storage. Production must use authenticated backend endpoints. */
+const KEY="superteam11.admin.matches";
+const form=document.querySelector("#matchForm"),list=document.querySelector("#matches"),empty=document.querySelector("#empty");
+function read(){try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch{return[]}}
+function render(){const rows=read();empty.hidden=rows.length>0;list.replaceChildren();rows.forEach((m,i)=>{const el=document.createElement("article");el.className="match";const title=document.createElement("h3");title.textContent=m.teamA+" vs "+m.teamB;const meta=document.createElement("p");meta.textContent=m.type+" · "+new Date(m.start).toLocaleString()+" · Manual";const del=document.createElement("button");del.textContent="Delete";del.type="button";del.onclick=()=>{const next=read();next.splice(i,1);localStorage.setItem(KEY,JSON.stringify(next));render()};el.append(title,meta,del);list.append(el)})}
+form.addEventListener("submit",e=>{e.preventDefault();const data=Object.fromEntries(new FormData(form));if(data.teamA.trim().toLowerCase()===data.teamB.trim().toLowerCase()){alert("Choose two different teams.");return}const rows=read();rows.push({...data,id:crypto.randomUUID(),status:"UPCOMING",source:"MANUAL",createdAt:new Date().toISOString()});localStorage.setItem(KEY,JSON.stringify(rows));form.reset();render()});
+document.querySelector("#export").addEventListener("click",()=>{const blob=new Blob([JSON.stringify(read(),null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="superteam11-matches.json";a.click();URL.revokeObjectURL(url)});
+render();
