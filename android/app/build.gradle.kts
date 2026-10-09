@@ -3,9 +3,11 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
 android {
     namespace = "com.superteam11.app"
     compileSdk = 35
+
     defaultConfig {
         applicationId = "com.superteam11.app"
         minSdk = 24
@@ -13,9 +15,24 @@ android {
         versionCode = 1
         versionName = "0.1.0"
     }
-    sourceSets["main"].assets.srcDirs("../../")
-    buildFeatures { compose = true }
+
+    // Only include the two brand images, not the entire repository root.
+    sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/superteam11Assets"))
+    buildFeatures {
+        compose = true
+    }
 }
+
+val copySuperTeam11Assets by tasks.registering(Copy::class) {
+    from(rootProject.file("../superteam11_logo.png"))
+    from(rootProject.file("../superteam11_splash.png"))
+    into(layout.buildDirectory.dir("generated/superteam11Assets"))
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(copySuperTeam11Assets)
+}
+
 dependencies {
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-compose:1.10.0")
